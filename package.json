@@ -15,5 +15,6 @@
   "bugs": {
     "url": "https://github.com/nisan-cb/force-directed-graph-drawing/issues"
   },
-  "homepage": "https://github.com/nisan-cb/force-directed-graph-drawing#readme"
+  "homepage": "https://github.com/nisan-cb/force-directed-graph-drawing#readme",
+  "type": "module"
 }
