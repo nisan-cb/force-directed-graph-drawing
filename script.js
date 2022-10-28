@@ -1,7 +1,7 @@
 console.log("script")
 
 import Vertex from './vertex.js'
-const G = 6.67384 * Math.pow(10, 2);
+const G = 6.67384 * Math.pow(10, 3);
 
 
 window.addEventListener('load', () => {
@@ -41,7 +41,7 @@ function start() {
 
 
 
-    const vertex1 = new Vertex(center.x + 150, center.y + 50, ctx);
+    const vertex1 = new Vertex(center.x, center.y + 30, ctx);
     const vertex2 = new Vertex(center.x - 50, center.y - 50, ctx, 20, 'green');
 
 
@@ -65,12 +65,16 @@ function start() {
 
         console.log("v = ", vertex2.v)
         console.log("(x,y) = ", vertex2.x, vertex2.y)
-        console.log("F = ", vertex2.f)
+        console.log("F v2 = ", vertex2.f)
+        console.log("F v1 = ", vertex1.f)
 
         const totalForce = calcTotalF();
         console.log("total f =", totalForce);
-        if (Math.abs(totalForce) > 100)
-            window.requestAnimationFrame(draw);
+
+        const requestID = window.requestAnimationFrame(draw);
+
+        if (Math.abs(totalForce) < 1)
+            window.cancelAnimationFrame(requestID)
     }
 
     draw();
@@ -98,10 +102,17 @@ function start() {
 
         const d = Math.sqrt(dx * dx + dy * dy);
 
-        const m = dy / dx;
-        const a = Math.atan(m);
+        let m = dy / dx;
+        if (dx === 0)
+            m = 0;
+        let a = Math.atan(m);
 
-        const F = (G) / (d * d);
+        let F = (G) / (d * d);
+        if (d === 0)
+            F = 0
+
+        if (dx === 0)
+            a = 90;
 
         const f = {
             x: F * Math.cos(a) * Math.sign(dx),
@@ -111,16 +122,24 @@ function start() {
     }
 
     function calcRepulsiveF(v1, v2) {
-        const k = 1.5;
-        const l = 250;
+        const k = 5.5;
+        const l = 100;
         const dx = v2.x - v1.x;
         const dy = v2.y - v1.y;
 
         const d = Math.sqrt(dx * dx + dy * dy);
         const F = k * (d - l);
-        const m = dy / dx;
-        v1.f.x += F * Math.cos(m) * Math.sign(dx);
-        v1.f.y += F * Math.sin(m) * Math.sign(dy);
+
+
+        let m = dy / dx;
+
+        let a = Math.atan(m);
+        if (dx === 0)
+            a = 90
+
+
+        v1.f.x += F * Math.cos(a) * Math.sign(dx);
+        v1.f.y += F * Math.sin(a) * Math.sign(dy);
 
 
     }

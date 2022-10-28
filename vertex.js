@@ -18,14 +18,21 @@ export default class Vertex {
     }
 
     calcVelocity() {
-        this.v.x += this.f.x * 1;;
-        this.v.y += this.f.y * 1;;
+        if (this.f.x === 0)
+            this.v.x = 0;
+        else
+            this.v.x += this.f.x * 1;
+
+        if (this.f.y === 0)
+            this.v.y = 0;
+        else
+            this.v.y += this.f.y * 1;
     }
     calcNewPosition() {
         // 0.5*a*t*t
-        const t = 1
+        const t = 0.01
         this.calcVelocity();
-        this.x += this.v.x * t + 0.5 * this.f.x * t;
-        this.y += this.v.y * t + 0.5 * this.f.y * t;
+        this.x += 0.5 * this.f.x * t;
+        this.y += 0.5 * this.f.y * t;
     }
 }
