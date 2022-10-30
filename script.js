@@ -1,8 +1,10 @@
 console.log("script")
 
 import Vertex from './vertex.js'
-const G = 6.67384 * Math.pow(10, 3);
+const G = 6.67384 * Math.pow(10, 4);
+const E = Math.pow(10, -2);
 
+let loops = 0;
 
 window.addEventListener('load', () => {
     console.log("window loaded");
@@ -41,49 +43,98 @@ function start() {
 
 
 
-    const vertex1 = new Vertex(center.x, center.y + 30, ctx);
-    const vertex2 = new Vertex(center.x - 50, center.y - 50, ctx, 20, 'green');
+    const vertex1 = new Vertex(randomX(canvas.width), randomX(canvas.height), ctx);
+    const vertex2 = new Vertex(randomX(canvas.width), randomX(canvas.height), ctx, 20, 'green');
+    const vertex3 = new Vertex(randomX(canvas.width), randomX(canvas.height), ctx, 10, 'red');
+    const vertex4 = new Vertex(randomX(canvas.width), randomX(canvas.height), ctx, 10, 'black');
+    const vertex5 = new Vertex(randomX(canvas.width), randomX(canvas.height), ctx, 10, 'blue');
 
+    const V = {
+        [vertex1.id]: vertex1,
+        [vertex2.id]: vertex2,
+        [vertex3.id]: vertex3,
+        [vertex4.id]: vertex4,
+        [vertex5.id]: vertex5,
+
+    }
+
+    const graph = {
+        [vertex1.id]: [vertex2.id, vertex5.id],
+        [vertex2.id]: [vertex1.id, vertex3.id, vertex4.id],
+        [vertex3.id]: [vertex2.id],
+        [vertex4.id]: [vertex2.id],
+        [vertex5.id]: [vertex1.id],
+    }
+
+
+
+    const Varr = [];
+    Varr.push(vertex1);
+    Varr.push(vertex2);
+    Varr.push(vertex3);
+    Varr.push(vertex4);
+    Varr.push(vertex5);
 
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height)
-        center.draw();
-        vertex1.draw();
-        vertex2.draw();
 
-        drawLine(vertex1, center);
-        drawLine(vertex2, center);
+        // draw all V and E
+        for (let k in graph) {
+            const v = V[k];
+            v.f = { x: 0, y: 0 }
+            graph[k].forEach(u => drawLine(v, V[u]))
+            v.draw();
+        }
 
-        calcGravity(vertex1);
-        calcGravity(vertex2);
+        for (let k in graph) {
+            const v = V[k];
+            // calcGravity(v);
+            for (let t in graph) {
+                const u = V[t];
+                console.log(k, t)
 
-        calcRepulsiveF(vertex1, center);
-        calcRepulsiveF(vertex2, center);
-        // vertex.calcVelocity();
-        vertex1.calcNewPosition();
-        vertex2.calcNewPosition();
+                if (v.id !== u.id)
+                    calcRepulsiveF(v, u)
+                if (graph[k].includes(Number(t))) {
+                    calcAtractiveF(v, u);
+                }
+            }
+        }
+        Varr.forEach(v => {
+            v.calcNewPosition();
+        });
 
-        console.log("v = ", vertex2.v)
-        console.log("(x,y) = ", vertex2.x, vertex2.y)
-        console.log("F v2 = ", vertex2.f)
-        console.log("F v1 = ", vertex1.f)
+
+
+
 
         const totalForce = calcTotalF();
+        loops++;
         console.log("total f =", totalForce);
-
+        console.log(Varr.length)
         const requestID = window.requestAnimationFrame(draw);
-
-        if (Math.abs(totalForce) < 1)
+        if (loops >= Varr.length * 50) {
+            console.log("stoped")
+            console.log('loops = ', loops)
             window.cancelAnimationFrame(requestID)
+        }
     }
 
     draw();
 
     function calcTotalF() {
+
         const F = {
-            x: vertex1.f.x + vertex2.f.x,
-            y: vertex1.f.y + vertex2.f.y
+            x: 0,
+            y: 0
         }
+        Varr.forEach(v => {
+            console.log(v.f)
+            F.x += v.f.x;
+            F.y += v.f.y;
+        });
+
+        console.log(F);
 
         return Math.sqrt(F.x * F.x + F.y * F.y);
     }
@@ -103,27 +154,47 @@ function start() {
         const d = Math.sqrt(dx * dx + dy * dy);
 
         let m = dy / dx;
-        if (dx === 0)
-            m = 0;
         let a = Math.atan(m);
-
-        let F = (G) / (d * d);
-        if (d === 0)
-            F = 0
 
         if (dx === 0)
             a = 90;
 
-        const f = {
-            x: F * Math.cos(a) * Math.sign(dx),
-            y: F * Math.sin(a) * Math.sign(dy)
-        }
-        v.f = f;
+        let F = (G) / (d * d);
+        if (d < 50)
+            F = 0
+
+        v.f.x += F * Math.abs(Math.cos(a)) * Math.sign(dx);
+        v.f.y += F * Math.abs(Math.sin(a)) * Math.sign(dy);
+
     }
 
     function calcRepulsiveF(v1, v2) {
-        const k = 5.5;
-        const l = 100;
+        console.log(v1.id, v2.id)
+        const dx = v1.x - v2.x;
+        const dy = v1.y - v2.y;
+
+        const d = Math.sqrt(dx * dx + dy * dy);
+
+        let m = dy / dx;
+        let a = Math.atan(m);
+
+        if (dx === 0)
+            a = 90;
+
+        let F = (G * 5) / (d * d);
+        if (d === 0)
+            F = 0
+
+
+        v1.f.x += F * Math.abs(Math.cos(a)) * Math.sign(dx);
+        v1.f.y += F * Math.abs(Math.sin(a)) * Math.sign(dy);
+
+    }
+
+    function calcAtractiveF(v1, v2) {
+        console.log("a")
+        const k = 0.5;
+        const l = 10;
         const dx = v2.x - v1.x;
         const dy = v2.y - v1.y;
 
@@ -137,16 +208,18 @@ function start() {
         if (dx === 0)
             a = 90
 
-
-        v1.f.x += F * Math.cos(a) * Math.sign(dx);
-        v1.f.y += F * Math.sin(a) * Math.sign(dy);
-
-
+        v1.f.x += F * Math.abs(Math.cos(a)) * Math.sign(dx);
+        v1.f.y += F * Math.abs(Math.sin(a)) * Math.sign(dy);
     }
 }
 
 
-
+function randomX(width) {
+    return Math.random() * width;
+}
+function randomY(height) {
+    return Math.random() * height;
+}
 
 // to fix bitmap of canvas
 function getObjectFitSize(

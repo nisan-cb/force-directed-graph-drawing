@@ -1,4 +1,5 @@
 export default class Vertex {
+    static id = 1;
     constructor(x, y, ctx, radius = 10, color = 'yellow') {
         this.x = x;
         this.y = y;
@@ -7,6 +8,8 @@ export default class Vertex {
         this.radius = radius;
         this.color = color;
         this.ctx = ctx;
+        this.id = Vertex.id;
+        Vertex.id++;
     }
 
     draw() {
